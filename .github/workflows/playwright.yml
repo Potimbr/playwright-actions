@@ -10,20 +10,24 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Get code
-    - uses: actions/checkout@v4
+      uses: actions/checkout@v4
 
     - name: Install Node latest
-    - uses: actions/setup-node@v4
+      uses: actions/setup-node@v4
       with:
         node-version: lts/*
+
     - name: Install dependencies
       run: npm install
+
     - name: Install Playwright Browsers
       run: npx playwright install --with-deps
+
     - name: Run Playwright tests
       run: npx playwright test
+
     - name: HTML Report
-    - uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v4
       if: always()
       with:
         name: playwright-report
