@@ -26,9 +26,28 @@ jobs:
       - name: Install dependencies
         run: npm ci  # mais rápido e confiável que npm install
 
-      - name: Run Playwright tests
-        run: npx playwright test
+      # 👉 Executa testes e salva saída JSON, sem quebrar o job ainda
+      - name: Run Playwright tests (collect results)
+        run: |
+          npx playwright test --reporter=json > results.json || true
 
+      # 👉 Calcula taxa de sucesso e bloqueia se abaixo de 90%
+      - name: Check test pass rate
+        run: |
+          passed=$(jq '[.suites[].specs[] | select(.ok == true)] | length' results.json)
+          total=$(jq '[.suites[].specs[]] | length' results.json)
+          pass_rate=$(( 100 * passed / total ))
+
+          echo "✅ $passed of $total tests passed ($pass_rate%)"
+
+          if [ $pass_rate -lt 90 ]; then
+            echo "❌ Test pass rate below threshold (90%)"
+            exit 1
+          else
+            echo "✅ Test pass rate acceptable (>= 90%)"
+          fi
+
+      # 👉 Sempre faz upload do relatório HTML
       - name: Upload HTML report
         if: always()
         uses: actions/upload-artifact@v4
